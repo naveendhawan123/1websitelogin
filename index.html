@@ -430,10 +430,13 @@
     }
 
     function setupRecaptcha() {
+      // Reuse the existing verifier when one is already initialized.
       if (recaptchaVerifier) {
-        recaptchaVerifier.clear();
+        return recaptchaVerifier;
       }
 
+      // Compat SDK (firebase-auth-compat.js) expects the container ID,
+      // followed by the verifier parameters.
       recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
         "recaptcha-container",
         {
@@ -441,12 +444,18 @@
         }
       );
 
-      return recaptchaVerifier.render();
+      // IMPORTANT: Return the RecaptchaVerifier object itself.
+      // Do not return recaptchaVerifier.render(), which resolves to a widget ID.
+      return recaptchaVerifier;
     }
 
     function resetRecaptcha() {
       if (recaptchaVerifier) {
-        recaptchaVerifier.clear();
+        try {
+          recaptchaVerifier.clear();
+        } catch (error) {
+          console.warn("Could not clear reCAPTCHA verifier:", error);
+        }
         recaptchaVerifier = null;
       }
     }
@@ -483,7 +492,7 @@
       setButtonLoading(button, true, "Get OTP");
 
       try {
-        const verifier = await setupRecaptcha();
+        const verifier = setupRecaptcha();
 
         confirmationResult = await auth.signInWithPhoneNumber(
           fullPhone,
@@ -498,7 +507,7 @@
 
         showPage("otpPage");
       } catch (error) {
-        console.error(error);
+        console.error("Firebase OTP error:", error.code, error.message, error);
 
         resetRecaptcha();
 
