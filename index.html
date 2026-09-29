@@ -1,0 +1,584 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZenStay | Secure Login</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      color: #11100e;
+      background: #f7f4ee;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 460px;
+      background: white;
+      border: 1px solid #e9e3d9;
+      border-radius: 25px;
+      padding: 38px;
+      box-shadow: 0 20px 70px #33271312;
+    }
+
+    .brand {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      margin-bottom: 40px;
+    }
+
+    .brand span {
+      display: inline-grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      background: #11100e;
+      color: white;
+      border-radius: 12px;
+      margin-right: 10px;
+    }
+
+    .eyebrow {
+      color: #956515;
+      font-size: 11px;
+      letter-spacing: 2px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: 36px;
+      line-height: 1.2;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
+    }
+
+    h1 span {
+      color: #b98225;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #777168;
+      line-height: 1.8;
+      margin-bottom: 26px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin: 18px 0 9px;
+    }
+
+    input {
+      width: 100%;
+      height: 52px;
+      padding: 0 15px;
+      border: 1px solid #e9e3d9;
+      border-radius: 12px;
+      background: #fcfbf9;
+      font-size: 14px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #b98225;
+      box-shadow: 0 0 0 4px #b982251a;
+    }
+
+    .phone {
+      display: flex;
+      align-items: center;
+      border: 1px solid #e9e3d9;
+      border-radius: 12px;
+      background: #fcfbf9;
+      padding-left: 15px;
+    }
+
+    .phone span {
+      font-size: 14px;
+      font-weight: 700;
+      padding-right: 12px;
+      border-right: 1px solid #e9e3d9;
+    }
+
+    .phone input {
+      border: none;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    button, .button {
+      width: 100%;
+      min-height: 54px;
+      border: none;
+      border-radius: 13px;
+      background: #11100e;
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      text-decoration: none;
+      margin-top: 22px;
+    }
+
+    button:hover, .button:hover {
+      background: #956515;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .text-button {
+      background: transparent;
+      color: #956515;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .text-button:hover {
+      background: #fbf5e9;
+    }
+
+    .message {
+      display: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 15px;
+    }
+
+    .error {
+      display: block;
+      background: #fef0ef;
+      color: #b42318;
+    }
+
+    .success {
+      display: block;
+      background: #e8f7ed;
+      color: #16803d;
+    }
+
+    .result-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      font-size: 30px;
+      font-weight: 700;
+      margin-bottom: 28px;
+    }
+
+    .green {
+      background: #e8f7ed;
+      color: #16803d;
+    }
+
+    .red {
+      background: #fef0ef;
+      color: #b42318;
+    }
+
+    .footer {
+      margin-top: 25px;
+      font-size: 11px;
+      color: #928b81;
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        padding: 16px;
+      }
+
+      .card {
+        padding: 28px 23px;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+    }
+  </style>
+
+  <!-- Firebase browser SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+</head>
+
+<body>
+
+  <main class="card">
+
+    <div class="brand"><span>Z</span> ZENSTAY</div>
+
+    <!-- LOGIN FORM -->
+    <section id="loginPage">
+      <div class="eyebrow">WELCOME HOME</div>
+
+      <h1>Find your place.<br><span>Start here.</span></h1>
+
+      <p class="subtitle">
+        Enter your details to continue to your rental experience.
+      </p>
+
+      <form id="loginForm">
+
+        <label for="name">Customer name</label>
+        <input
+          id="name"
+          type="text"
+          placeholder="Enter your full name"
+          autocomplete="name"
+          required
+        >
+
+        <label for="phone">Phone number</label>
+        <div class="phone">
+          <span>+91</span>
+          <input
+            id="phone"
+            type="tel"
+            placeholder="10-digit mobile number"
+            inputmode="numeric"
+            maxlength="10"
+            required
+          >
+        </div>
+
+        <label for="email">Email ID</label>
+        <input
+          id="email"
+          type="email"
+          placeholder="you@example.com"
+          autocomplete="email"
+          required
+        >
+
+        <div id="recaptcha-container"></div>
+
+        <div id="loginMessage" class="message"></div>
+
+        <button id="sendButton" type="submit">
+          <span>Get OTP</span><span>→</span>
+        </button>
+      </form>
+
+      <p class="footer">
+        Secure phone verification · Your information stays protected
+      </p>
+    </section>
+
+    <!-- OTP FORM -->
+    <section id="otpPage" class="hidden">
+      <div class="eyebrow">PHONE VERIFICATION</div>
+
+      <h1>Verify your<br><span>number.</span></h1>
+
+      <p class="subtitle">
+        Enter the 6-digit code sent to
+        <strong id="phoneDisplay"></strong>
+      </p>
+
+      <form id="otpForm">
+        <label for="otp">One-time password (OTP)</label>
+
+        <input
+          id="otp"
+          type="text"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength="6"
+          placeholder="Enter 6-digit OTP"
+          required
+        >
+
+        <div id="otpMessage" class="message"></div>
+
+        <button id="verifyButton" type="submit">
+          <span>Verify OTP</span><span>→</span>
+        </button>
+      </form>
+
+      <button class="text-button" id="resendButton" type="button">
+        Resend OTP
+      </button>
+
+      <button class="text-button" id="changeButton" type="button">
+        Change phone number
+      </button>
+    </section>
+
+    <!-- SUCCESS PAGE -->
+    <section id="successPage" class="hidden">
+      <div class="result-icon green">✓</div>
+
+      <div class="eyebrow">VERIFICATION COMPLETE</div>
+
+      <h1 id="successHeading">Congratulations!</h1>
+
+      <p class="subtitle">
+        Your phone number has been successfully verified.
+        Welcome to ZenStay!
+      </p>
+
+      <div class="message success">
+        ✓ Phone number verified successfully.
+      </div>
+    </section>
+
+    <!-- FAILURE PAGE -->
+    <section id="failPage" class="hidden">
+      <div class="result-icon red">!</div>
+
+      <div class="eyebrow">VERIFICATION FAILED</div>
+
+      <h1>Oops! Try again.</h1>
+
+      <p class="subtitle">
+        The OTP you entered is incorrect or has expired.
+        Please request a new code and try again.
+      </p>
+
+      <div class="message error">
+        Phone number not verified.
+      </div>
+
+      <button id="retryButton" type="button">
+        <span>Try Again</span><span>→</span>
+      </button>
+    </section>
+
+  </main>
+
+  <script>
+    // ==============================================
+    // STEP 1: REPLACE WITH YOUR FIREBASE WEB CONFIG
+    // ==============================================
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBI37jh-V6ZOrYhvtSgM_p9-PM_277Hp-g",
+      authDomain: "websitelogin1-d485f.firebaseapp.com",
+      projectId: "websitelogin1-d485f",
+      storageBucket: "websitelogin1-d485f.firebasestorage.app",
+      messagingSenderId: "127367323383",
+      appId: "1:127367323383:web:2ac93438cc3e8bdf92bdf2",
+      measurementId: "G-07SR22ZTMZ"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+
+    let confirmationResult = null;
+    let recaptchaVerifier = null;
+    let customerName = "";
+    let customerPhone = "";
+    let customerEmail = "";
+    let resendTimeout = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    function showPage(pageId) {
+      [
+        "loginPage",
+        "otpPage",
+        "successPage",
+        "failPage"
+      ].forEach(id => $(id).classList.add("hidden"));
+
+      $(pageId).classList.remove("hidden");
+    }
+
+    function showMessage(id, message, type = "error") {
+      const el = $(id);
+      el.textContent = message;
+      el.className = "message " + type;
+    }
+
+    function clearMessage(id) {
+      $(id).textContent = "";
+      $(id).className = "message";
+    }
+
+    function setupRecaptcha() {
+      if (recaptchaVerifier) {
+        recaptchaVerifier.clear();
+      }
+
+      recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
+        "recaptcha-container",
+        {
+          size: "invisible"
+        }
+      );
+
+      return recaptchaVerifier.render();
+    }
+
+    function resetRecaptcha() {
+      if (recaptchaVerifier) {
+        recaptchaVerifier.clear();
+        recaptchaVerifier = null;
+      }
+    }
+
+    function setButtonLoading(button, loading, text) {
+      button.disabled = loading;
+      button.querySelector("span").textContent =
+        loading ? "Please wait..." : text;
+    }
+
+    async function sendOTP() {
+      clearMessage("loginMessage");
+
+      customerName = $("name").value.trim();
+      customerPhone = $("phone").value.trim();
+      customerEmail = $("email").value.trim();
+
+      if (!customerName || !customerPhone || !customerEmail) {
+        showMessage("loginMessage", "Please fill in all fields.");
+        return;
+      }
+
+      if (!/^[6-9]\d{9}$/.test(customerPhone)) {
+        showMessage(
+          "loginMessage",
+          "Enter a valid 10-digit Indian mobile number."
+        );
+        return;
+      }
+
+      const fullPhone = "+91" + customerPhone;
+      const button = $("sendButton");
+
+      setButtonLoading(button, true, "Get OTP");
+
+      try {
+        const verifier = await setupRecaptcha();
+
+        confirmationResult = await auth.signInWithPhoneNumber(
+          fullPhone,
+          verifier
+        );
+
+        sessionStorage.setItem("customerName", customerName);
+        sessionStorage.setItem("customerEmail", customerEmail);
+        sessionStorage.setItem("customerPhone", fullPhone);
+
+        $("phoneDisplay").textContent = fullPhone;
+
+        showPage("otpPage");
+      } catch (error) {
+        console.error(error);
+
+        resetRecaptcha();
+
+        showMessage(
+          "loginMessage",
+          error.code === "auth/too-many-requests"
+            ? "Too many attempts. Please try again later."
+            : "OTP could not be sent. Check Firebase settings and your phone number."
+        );
+      } finally {
+        setButtonLoading(button, false, "Get OTP");
+      }
+    }
+
+    async function verifyOTP(event) {
+      event.preventDefault();
+
+      clearMessage("otpMessage");
+
+      const otp = $("otp").value.trim();
+
+      if (!/^\d{6}$/.test(otp)) {
+        showMessage("otpMessage", "Enter the 6-digit OTP.");
+        return;
+      }
+
+      const button = $("verifyButton");
+
+      setButtonLoading(button, true, "Verify OTP");
+
+      try {
+        await confirmationResult.confirm(otp);
+
+        $("successHeading").textContent =
+          "Congratulations, " + customerName.split(" ")[0] + "!";
+
+        showPage("successPage");
+      } catch (error) {
+        console.error(error);
+
+        showPage("failPage");
+      } finally {
+        setButtonLoading(button, false, "Verify OTP");
+      }
+    }
+
+    async function resendOTP() {
+      if (resendTimeout) return;
+
+      $("otp").value = "";
+
+      showPage("loginPage");
+
+      // Re-send the OTP using the same validated login form.
+      $("loginForm").requestSubmit();
+    }
+
+    $("loginForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      await sendOTP();
+    });
+
+    $("otpForm").addEventListener("submit", verifyOTP);
+
+    $("resendButton").addEventListener("click", resendOTP);
+
+    $("changeButton").addEventListener("click", () => {
+      confirmationResult = null;
+      $("otp").value = "";
+      resetRecaptcha();
+      showPage("loginPage");
+    });
+
+    $("retryButton").addEventListener("click", () => {
+      confirmationResult = null;
+      $("otp").value = "";
+      resetRecaptcha();
+      showPage("loginPage");
+    });
+  </script>
+
+</body>
+</html>
