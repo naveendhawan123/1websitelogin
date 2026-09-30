@@ -1,0 +1,9 @@
+{
+  "name": "zenstay-email-otp",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@upstash/redis": "^1.34.3",
+    "resend": "^6.0.0"
+  }
+}
