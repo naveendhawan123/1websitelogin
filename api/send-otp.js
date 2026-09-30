@@ -1,165 +1,76 @@
-const { Redis } = require("@upstash/redis");
-const { Resend } = require("resend");
 const crypto = require("crypto");
+const { Redis } = require("@upstash/redis");
 
 const redis = Redis.fromEnv();
-const resend = new Resend(process.env.RESEND_API_KEY);
 
-
-function hashCode(email, code) {
-
-  return crypto
-    .createHmac(
-      "sha256",
-      process.env.OTP_HMAC_SECRET
-    )
-    .update(
-      email.toLowerCase() + ":" + code
-    )
-    .digest("hex");
-
+function normalizeEmail(email) {
+  return String(email || "").trim().toLowerCase();
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
-module.exports = async (req, res) => {
+function hashOtp(email, code) {
+  return crypto
+    .createHmac("sha256", process.env.OTP_HMAC_SECRET)
+    .update(`${email}:${code}`)
+    .digest("hex");
+}
 
+module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
-
-    return res
-      .status(405)
-      .json({
-        error: "Method not allowed."
-      });
-
+    return res.status(405).json({
+      error: "Method not allowed"
+    });
   }
 
-
   try {
+    const { name, email } = req.body || {};
 
-    const {
-      name,
-      email
-    } = req.body || {};
+    const cleanName = String(name || "").trim();
+    const cleanEmail = normalizeEmail(email);
 
-
-    const normalizedEmail =
-      String(email || "")
-        .trim()
-        .toLowerCase();
-
-
-    const cleanName =
-      String(name || "")
-        .trim()
-        .slice(0, 100);
-
-
-    if (
-      !cleanName ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        .test(normalizedEmail)
-    ) {
-
-      return res
-        .status(400)
-        .json({
-          error:
-            "Enter a valid name and email address."
-        });
-
+    if (!cleanName) {
+      return res.status(400).json({
+        error: "Please enter your name."
+      });
     }
 
-
-    if (
-      !process.env.RESEND_API_KEY ||
-      !process.env.OTP_HMAC_SECRET ||
-      !process.env.UPSTASH_REDIS_REST_URL ||
-      !process.env.UPSTASH_REDIS_REST_TOKEN ||
-      !process.env.OTP_FROM_EMAIL
-    ) {
-
-      return res
-        .status(500)
-        .json({
-          error:
-            "Email OTP service is not fully configured in Vercel."
-        });
-
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return res.status(400).json({
+        error: "Please enter a valid email address."
+      });
     }
 
+    // Prevent requesting a new OTP too frequently.
+    const cooldownKey = `otp:cooldown:${cleanEmail}`;
 
+    const cooldownExists = await redis.get(cooldownKey);
 
-    // ==============================
-    // RATE LIMIT
-    // ==============================
-
-    const rateKey =
-      "otp-rate:" +
-      crypto
-        .createHash("sha256")
-        .update(normalizedEmail)
-        .digest("hex");
-
-
-    const allowed =
-      await redis.set(
-        rateKey,
-        "1",
-        {
-          nx: true,
-          ex: 30
-        }
-      );
-
-
-    if (!allowed) {
-
-      return res
-        .status(429)
-        .json({
-          error:
-            "Please wait 30 seconds before requesting another code."
-        });
-
+    if (cooldownExists) {
+      return res.status(429).json({
+        error: "Please wait 30 seconds before requesting another OTP."
+      });
     }
 
+    // Generate a 6-digit OTP.
+    const code = String(crypto.randomInt(100000, 1000000));
 
+    // Store only the HMAC hash, never the OTP itself.
+    const otpHash = hashOtp(cleanEmail, code);
 
-    // ==============================
-    // GENERATE 6-DIGIT OTP
-    // ==============================
-
-    const code =
-      String(
-        crypto.randomInt(
-          0,
-          1000000
-        )
-      ).padStart(6, "0");
-
-
-
-    // ==============================
-    // STORE HASH
-    // OTP EXPIRES AFTER 10 MINUTES
-    // ==============================
-
-    const codeKey =
-      "otp-code:" +
-      crypto
-        .createHash("sha256")
-        .update(normalizedEmail)
-        .digest("hex");
-
+    const otpKey = `otp:${cleanEmail}`;
 
     await redis.set(
-      codeKey,
+      otpKey,
       JSON.stringify({
-        hash:
-          hashCode(
-            normalizedEmail,
-            code
-          ),
+        hash: otpHash,
         attempts: 0
       }),
       {
@@ -167,27 +78,102 @@ module.exports = async (req, res) => {
       }
     );
 
+    await redis.set(
+      cooldownKey,
+      "1",
+      {
+        ex: 30
+      }
+    );
 
+    const customerName = escapeHtml(cleanName);
 
-    // ==============================
-    // SEND EMAIL
-    // ==============================
+    const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your ZenStay verification code</title>
+</head>
 
-    const result =
-      await resend.emails.send({
+<body style="
+  margin:0;
+  padding:0;
+  background:#f7f4ee;
+  font-family:Arial,Helvetica,sans-serif;
+  color:#11100e;
+">
 
-        from:
-          process.env.OTP_FROM_EMAIL,
+  <div style="
+    max-width:600px;
+    margin:40px auto;
+    background:#ffffff;
+    border:1px solid #ebe7df;
+    border-radius:18px;
+    overflow:hidden;
+  ">
 
-        to: [
-          normalizedEmail
-        ],
+    <div style="
+      padding:28px;
+      background:#11100e;
+      color:#ffffff;
+    ">
+      <h1 style="
+        margin:0;
+        font-size:24px;
+      ">
+        ZenStay
+      </h1>
+    </div>
 
-        subject:
-          "Your ZenStay verification code",
+    <div style="padding:32px;">
 
-        text:
-`Hello ${cleanName},
+      <p style="font-size:16px;">
+        Hello ${customerName},
+      </p>
+
+      <p style="font-size:16px;line-height:1.6;">
+        Use the verification code below to continue signing in to ZenStay.
+      </p>
+
+      <div style="
+        margin:28px 0;
+        padding:22px;
+        text-align:center;
+        background:#f7f4ee;
+        border-radius:14px;
+      ">
+
+        <div style="
+          font-size:36px;
+          font-weight:700;
+          letter-spacing:8px;
+        ">
+          ${code}
+        </div>
+
+      </div>
+
+      <p style="
+        font-size:14px;
+        color:#68645d;
+        line-height:1.6;
+      ">
+        This code expires in 10 minutes.
+        If you did not request this code, you can safely ignore this email.
+      </p>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
+`;
+
+    const emailText = `
+Hello ${cleanName},
 
 Your ZenStay verification code is:
 
@@ -195,132 +181,53 @@ ${code}
 
 This code expires in 10 minutes.
 
-Do not share this code with anyone.
+If you did not request this code, you can safely ignore this email.
+`;
 
-If you did not request this code, you can ignore this email.
+    // Send through Sendlib using the connected Gmail account.
+    const sendResponse = await fetch(
+      "https://sendlib.samueltuoyo.com/api/send",
+      {
+        method: "POST",
 
-— ZenStay`,
+        headers: {
+          "Authorization": `Bearer ${process.env.SENDLIB_API_KEY}`,
+          "Content-Type": "application/json"
+        },
 
-        html:
-`
-<div style="
-  font-family:Arial,sans-serif;
-  max-width:520px;
-  margin:auto;
-  padding:24px;
-  color:#111;
-">
-
-  <h2>
-    ZenStay verification
-  </h2>
-
-  <p>
-    Hello ${escapeHtml(cleanName)},
-  </p>
-
-  <p>
-    Your six-digit verification code is:
-  </p>
-
-  <div style="
-    font-size:32px;
-    font-weight:bold;
-    letter-spacing:8px;
-    padding:16px;
-    background:#f7f4ee;
-    border-radius:12px;
-    text-align:center;
-  ">
-    ${code}
-  </div>
-
-  <p>
-    This code expires in 10 minutes.
-  </p>
-
-  <p>
-    Do not share this code with anyone.
-  </p>
-
-  <p>
-    If you did not request this code,
-    you can ignore this email.
-  </p>
-
-  <p>
-    — ZenStay
-  </p>
-
-</div>
-`
-
-      });
-
-
-    if (result.error) {
-
-      await redis.del(codeKey);
-
-
-      return res
-        .status(502)
-        .json({
-          error:
-            "Email delivery failed. Check your Resend sender settings."
-        });
-
-    }
-
-
-    return res
-      .status(200)
-      .json({
-        ok: true
-      });
-
-
-  } catch (error) {
-
-    console.error(
-      "send-otp error:",
-      error
-    );
-
-
-    return res
-      .status(500)
-      .json({
-        error:
-          "Could not send the verification email. Please try again."
-      });
-
-  }
-
-};
-
-
-
-function escapeHtml(value) {
-
-  return String(value)
-    .replace(
-      /[&<>"']/g,
-      function (character) {
-
-        const entities = {
-
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          '"': "&quot;",
-          "'": "&#39;"
-
-        };
-
-        return entities[character];
-
+        body: JSON.stringify({
+          from: process.env.OTP_FROM_EMAIL,
+          to: cleanEmail,
+          subject: "Your ZenStay verification code",
+          html: emailHtml,
+          text: emailText
+        })
       }
     );
 
-}
+    const sendData = await sendResponse.json().catch(() => ({}));
+
+    if (!sendResponse.ok) {
+      console.error("Sendlib error:", sendData);
+
+      // Remove OTP because the email was not successfully sent.
+      await redis.del(otpKey);
+
+      return res.status(502).json({
+        error: "Email delivery failed. Please try again."
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent successfully."
+    });
+
+  } catch (error) {
+    console.error("Send OTP error:", error);
+
+    return res.status(500).json({
+      error: "Unable to send OTP right now."
+    });
+  }
+};
