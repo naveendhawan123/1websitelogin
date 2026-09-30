@@ -1,9 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>ZenStay | Secure Login</title>
 
   <style>
@@ -100,29 +100,7 @@
       box-shadow: 0 0 0 4px #b982251a;
     }
 
-    .phone {
-      display: flex;
-      align-items: center;
-      border: 1px solid #e9e3d9;
-      border-radius: 12px;
-      background: #fcfbf9;
-      padding-left: 15px;
-    }
-
-    .phone span {
-      font-size: 14px;
-      font-weight: 700;
-      padding-right: 12px;
-      border-right: 1px solid #e9e3d9;
-    }
-
-    .phone input {
-      border: none;
-      background: transparent;
-      box-shadow: none;
-    }
-
-    button, .button {
+    button {
       width: 100%;
       min-height: 54px;
       border: none;
@@ -132,15 +110,16 @@
       font-size: 14px;
       font-weight: 700;
       cursor: pointer;
+
       display: flex;
       align-items: center;
       justify-content: space-between;
+
       padding: 0 20px;
-      text-decoration: none;
       margin-top: 22px;
     }
 
-    button:hover, .button:hover {
+    button:hover {
       background: #956515;
     }
 
@@ -169,13 +148,13 @@
       margin-top: 15px;
     }
 
-    .error {
+    .message.error {
       display: block;
       background: #fef0ef;
       color: #b42318;
     }
 
-    .success {
+    .message.success {
       display: block;
       background: #e8f7ed;
       color: #16803d;
@@ -195,11 +174,6 @@
     .green {
       background: #e8f7ed;
       color: #16803d;
-    }
-
-    .red {
-      background: #fef0ef;
-      color: #b42318;
     }
 
     .footer {
@@ -228,88 +202,121 @@
       }
     }
   </style>
-
-  <!-- Firebase browser SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 </head>
 
 <body>
 
   <main class="card">
 
-    <div class="brand"><span>Z</span> ZENSTAY</div>
+    <div class="brand">
+      <span>Z</span> ZENSTAY
+    </div>
 
-    <!-- LOGIN FORM -->
+
+    <!-- ============================= -->
+    <!-- LOGIN PAGE                     -->
+    <!-- ============================= -->
+
     <section id="loginPage">
-      <div class="eyebrow">WELCOME HOME</div>
 
-      <h1>Find your place.<br><span>Start here.</span></h1>
+      <div class="eyebrow">
+        WELCOME HOME
+      </div>
+
+      <h1>
+        Find your place.<br>
+        <span>Start here.</span>
+      </h1>
 
       <p class="subtitle">
-        Enter your details to continue to your rental experience.
+        Enter your details to receive a secure six-digit verification code by email.
       </p>
+
 
       <form id="loginForm">
 
-        <label for="name">Customer name</label>
+        <label for="name">
+          Customer name
+        </label>
+
         <input
           id="name"
           type="text"
           placeholder="Enter your full name"
           autocomplete="name"
+          maxlength="100"
           required
         >
 
-        <label for="phone">Phone number</label>
-        <div class="phone">
-          <span>+91</span>
-          <input
-            id="phone"
-            type="tel"
-            placeholder="10-digit mobile number"
-            inputmode="numeric"
-            maxlength="10"
-            required
-          >
-        </div>
 
-        <label for="email">Email ID</label>
+        <label for="email">
+          Gmail / Email address
+        </label>
+
         <input
           id="email"
           type="email"
-          placeholder="you@example.com"
+          placeholder="you@gmail.com"
           autocomplete="email"
+          maxlength="254"
           required
         >
 
-        <div id="recaptcha-container"></div>
 
-        <div id="loginMessage" class="message"></div>
+        <div
+          id="loginMessage"
+          class="message"
+        ></div>
 
-        <button id="sendButton" type="submit">
-          <span>Get OTP</span><span>→</span>
+
+        <button
+          id="sendButton"
+          type="submit"
+        >
+          <span>Get email OTP</span>
+          <span>→</span>
         </button>
+
       </form>
 
+
       <p class="footer">
-        Secure phone verification · Your information stays protected
+        Secure email verification · Never share your verification code
       </p>
+
     </section>
 
-    <!-- OTP FORM -->
-    <section id="otpPage" class="hidden">
-      <div class="eyebrow">PHONE VERIFICATION</div>
 
-      <h1>Verify your<br><span>number.</span></h1>
+
+    <!-- ============================= -->
+    <!-- OTP PAGE                       -->
+    <!-- ============================= -->
+
+    <section
+      id="otpPage"
+      class="hidden"
+    >
+
+      <div class="eyebrow">
+        EMAIL VERIFICATION
+      </div>
+
+      <h1>
+        Check your<br>
+        <span>inbox.</span>
+      </h1>
 
       <p class="subtitle">
-        Enter the 6-digit code sent to
-        <strong id="phoneDisplay"></strong>
+        Enter the six-digit code sent to
+        <strong id="emailDisplay"></strong>.
       </p>
 
+
       <form id="otpForm">
-        <label for="otp">One-time password (OTP)</label>
+
+        <label for="otp">
+          One-time password (OTP)
+        </label>
 
         <input
           id="otp"
@@ -321,272 +328,504 @@
           required
         >
 
-        <div id="otpMessage" class="message"></div>
 
-        <button id="verifyButton" type="submit">
-          <span>Verify OTP</span><span>→</span>
+        <div
+          id="otpMessage"
+          class="message"
+        ></div>
+
+
+        <button
+          id="verifyButton"
+          type="submit"
+        >
+          <span>Verify code</span>
+          <span>→</span>
         </button>
+
       </form>
 
-      <button class="text-button" id="resendButton" type="button">
-        Resend OTP
+
+      <button
+        class="text-button"
+        id="resendButton"
+        type="button"
+      >
+        Resend code
       </button>
 
-      <button class="text-button" id="changeButton" type="button">
-        Change phone number
+
+      <button
+        class="text-button"
+        id="changeButton"
+        type="button"
+      >
+        Change email address
       </button>
+
     </section>
 
-    <!-- SUCCESS PAGE -->
-    <section id="successPage" class="hidden">
-      <div class="result-icon green">✓</div>
 
-      <div class="eyebrow">VERIFICATION COMPLETE</div>
 
-      <h1 id="successHeading">Congratulations!</h1>
+    <!-- ============================= -->
+    <!-- SUCCESS PAGE                   -->
+    <!-- ============================= -->
+
+    <section
+      id="successPage"
+      class="hidden"
+    >
+
+      <div class="result-icon green">
+        ✓
+      </div>
+
+      <div class="eyebrow">
+        VERIFICATION COMPLETE
+      </div>
+
+      <h1 id="successHeading">
+        Congratulations!
+      </h1>
 
       <p class="subtitle">
-        Your phone number has been successfully verified.
+        Your email address has been successfully verified.
         Welcome to ZenStay!
       </p>
 
       <div class="message success">
-        ✓ Phone number verified successfully.
-      </div>
-    </section>
-
-    <!-- FAILURE PAGE -->
-    <section id="failPage" class="hidden">
-      <div class="result-icon red">!</div>
-
-      <div class="eyebrow">VERIFICATION FAILED</div>
-
-      <h1>Oops! Try again.</h1>
-
-      <p class="subtitle">
-        The OTP you entered is incorrect or has expired.
-        Please request a new code and try again.
-      </p>
-
-      <div class="message error">
-        Phone number not verified.
+        ✓ Email verified successfully.
       </div>
 
-      <button id="retryButton" type="button">
-        <span>Try Again</span><span>→</span>
-      </button>
     </section>
 
   </main>
 
-  <script>
-    // ==============================================
-    // STEP 1: REPLACE WITH YOUR FIREBASE WEB CONFIG
-    // ==============================================
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBI37jh-V6ZOrYhvtSgM_p9-PM_277Hp-g",
-      authDomain: "websitelogin1-d485f.firebaseapp.com",
-      projectId: "websitelogin1-d485f",
-      storageBucket: "websitelogin1-d485f.firebasestorage.app",
-      messagingSenderId: "127367323383",
-      appId: "1:127367323383:web:2ac93438cc3e8bdf92bdf2",
-      measurementId: "G-07SR22ZTMZ"
+
+  <script>
+
+    let customerName = "";
+    let customerEmail = "";
+
+    let resendAfter = 0;
+
+
+    const $ = (id) => {
+      return document.getElementById(id);
     };
 
-    firebase.initializeApp(firebaseConfig);
-
-    const auth = firebase.auth();
-
-    let confirmationResult = null;
-    let recaptchaVerifier = null;
-    let customerName = "";
-    let customerPhone = "";
-    let customerEmail = "";
-    let resendTimeout = null;
-
-    const $ = (id) => document.getElementById(id);
 
     function showPage(pageId) {
+
       [
         "loginPage",
         "otpPage",
-        "successPage",
-        "failPage"
-      ].forEach(id => $(id).classList.add("hidden"));
+        "successPage"
+      ].forEach((id) => {
+
+        $(id).classList.add("hidden");
+
+      });
+
 
       $(pageId).classList.remove("hidden");
+
     }
 
-    function showMessage(id, message, type = "error") {
-      const el = $(id);
-      el.textContent = message;
-      el.className = "message " + type;
+
+    function showMessage(
+      id,
+      message,
+      type = "error"
+    ) {
+
+      const element = $(id);
+
+      element.textContent = message;
+
+      element.className =
+        "message " + type;
+
     }
+
 
     function clearMessage(id) {
-      $(id).textContent = "";
-      $(id).className = "message";
+
+      const element = $(id);
+
+      element.textContent = "";
+
+      element.className = "message";
+
     }
 
-    function setupRecaptcha() {
-      // Reuse the existing verifier when one is already initialized.
-      if (recaptchaVerifier) {
-        return recaptchaVerifier;
-      }
 
-      // Compat SDK (firebase-auth-compat.js) expects the container ID,
-      // followed by the verifier parameters.
-      recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
-        "recaptcha-container",
+    function setButtonLoading(
+      button,
+      loading,
+      normalText
+    ) {
+
+      button.disabled = loading;
+
+      button.querySelector("span").textContent =
+        loading
+          ? "Please wait..."
+          : normalText;
+
+    }
+
+
+    async function postJSON(
+      url,
+      body
+    ) {
+
+      const response = await fetch(
+        url,
         {
-          size: "invisible"
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify(body)
         }
       );
 
-      // IMPORTANT: Return the RecaptchaVerifier object itself.
-      // Do not return recaptchaVerifier.render(), which resolves to a widget ID.
-      return recaptchaVerifier;
+
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.error ||
+          "Something went wrong. Please try again."
+        );
+
+      }
+
+
+      return data;
+
     }
 
-    function resetRecaptcha() {
-      if (recaptchaVerifier) {
-        try {
-          recaptchaVerifier.clear();
-        } catch (error) {
-          console.warn("Could not clear reCAPTCHA verifier:", error);
+
+
+    // =====================================
+    // SEND OTP
+    // =====================================
+
+    $("loginForm").addEventListener(
+      "submit",
+      async (event) => {
+
+        event.preventDefault();
+
+        clearMessage("loginMessage");
+
+
+        customerName =
+          $("name").value.trim();
+
+
+        customerEmail =
+          $("email")
+            .value
+            .trim()
+            .toLowerCase();
+
+
+        if (!customerName) {
+
+          showMessage(
+            "loginMessage",
+            "Please enter your name."
+          );
+
+          return;
+
         }
-        recaptchaVerifier = null;
-      }
-    }
 
-    function setButtonLoading(button, loading, text) {
-      button.disabled = loading;
-      button.querySelector("span").textContent =
-        loading ? "Please wait..." : text;
-    }
 
-    async function sendOTP() {
-      clearMessage("loginMessage");
+        if (
+          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            .test(customerEmail)
+        ) {
 
-      customerName = $("name").value.trim();
-      customerPhone = $("phone").value.trim();
-      customerEmail = $("email").value.trim();
+          showMessage(
+            "loginMessage",
+            "Enter a valid email address."
+          );
 
-      if (!customerName || !customerPhone || !customerEmail) {
-        showMessage("loginMessage", "Please fill in all fields.");
-        return;
-      }
+          return;
 
-      if (!/^[6-9]\d{9}$/.test(customerPhone)) {
-        showMessage(
-          "loginMessage",
-          "Enter a valid 10-digit Indian mobile number."
-        );
-        return;
-      }
+        }
 
-      const fullPhone = "+91" + customerPhone;
-      const button = $("sendButton");
 
-      setButtonLoading(button, true, "Get OTP");
+        const button =
+          $("sendButton");
 
-      try {
-        const verifier = setupRecaptcha();
 
-        confirmationResult = await auth.signInWithPhoneNumber(
-          fullPhone,
-          verifier
+        setButtonLoading(
+          button,
+          true,
+          "Get email OTP"
         );
 
-        sessionStorage.setItem("customerName", customerName);
-        sessionStorage.setItem("customerEmail", customerEmail);
-        sessionStorage.setItem("customerPhone", fullPhone);
 
-        $("phoneDisplay").textContent = fullPhone;
+        try {
 
-        showPage("otpPage");
-      } catch (error) {
-        console.error("Firebase OTP error:", error.code, error.message, error);
+          await postJSON(
+            "/api/send-otp",
+            {
+              name: customerName,
+              email: customerEmail
+            }
+          );
 
-        resetRecaptcha();
 
-        showMessage(
-          "loginMessage",
-          error.code === "auth/too-many-requests"
-            ? "Too many attempts. Please try again later."
-            : "OTP could not be sent. Check Firebase settings and your phone number."
+          $("emailDisplay")
+            .textContent =
+            customerEmail;
+
+
+          $("otp").value = "";
+
+
+          showPage("otpPage");
+
+
+          showMessage(
+            "otpMessage",
+            "A six-digit verification code has been sent. Check your inbox and spam folder.",
+            "success"
+          );
+
+
+          resendAfter =
+            Date.now() + 30000;
+
+
+        } catch (error) {
+
+          console.error(
+            "Send OTP error:",
+            error
+          );
+
+
+          showMessage(
+            "loginMessage",
+            error.message
+          );
+
+        } finally {
+
+          setButtonLoading(
+            button,
+            false,
+            "Get email OTP"
+          );
+
+        }
+
+      }
+    );
+
+
+
+    // =====================================
+    // VERIFY OTP
+    // =====================================
+
+    $("otpForm").addEventListener(
+      "submit",
+      async (event) => {
+
+        event.preventDefault();
+
+        clearMessage("otpMessage");
+
+
+        const code =
+          $("otp")
+            .value
+            .trim();
+
+
+        if (!/^\d{6}$/.test(code)) {
+
+          showMessage(
+            "otpMessage",
+            "Enter the six-digit OTP."
+          );
+
+          return;
+
+        }
+
+
+        const button =
+          $("verifyButton");
+
+
+        setButtonLoading(
+          button,
+          true,
+          "Verify code"
         );
-      } finally {
-        setButtonLoading(button, false, "Get OTP");
+
+
+        try {
+
+          await postJSON(
+            "/api/verify-otp",
+            {
+              email: customerEmail,
+              code: code
+            }
+          );
+
+
+          const firstName =
+            customerName
+              .split(/\s+/)[0];
+
+
+          $("successHeading")
+            .textContent =
+            "Congratulations, " +
+            firstName +
+            "!";
+
+
+          showPage("successPage");
+
+
+        } catch (error) {
+
+          console.error(
+            "Verify OTP error:",
+            error
+          );
+
+
+          showMessage(
+            "otpMessage",
+            error.message
+          );
+
+        } finally {
+
+          setButtonLoading(
+            button,
+            false,
+            "Verify code"
+          );
+
+        }
+
       }
-    }
+    );
 
-    async function verifyOTP(event) {
-      event.preventDefault();
 
-      clearMessage("otpMessage");
 
-      const otp = $("otp").value.trim();
+    // =====================================
+    // RESEND OTP
+    // =====================================
 
-      if (!/^\d{6}$/.test(otp)) {
-        showMessage("otpMessage", "Enter the 6-digit OTP.");
-        return;
+    $("resendButton").addEventListener(
+      "click",
+      async () => {
+
+        if (
+          Date.now() < resendAfter
+        ) {
+
+          showMessage(
+            "otpMessage",
+            "Please wait 30 seconds before requesting another code."
+          );
+
+          return;
+
+        }
+
+
+        clearMessage("otpMessage");
+
+
+        const button =
+          $("resendButton");
+
+
+        button.disabled = true;
+
+
+        try {
+
+          await postJSON(
+            "/api/send-otp",
+            {
+              name: customerName,
+              email: customerEmail
+            }
+          );
+
+
+          showMessage(
+            "otpMessage",
+            "A new verification code has been sent.",
+            "success"
+          );
+
+
+          resendAfter =
+            Date.now() + 30000;
+
+
+        } catch (error) {
+
+          showMessage(
+            "otpMessage",
+            error.message
+          );
+
+        } finally {
+
+          button.disabled = false;
+
+        }
+
       }
+    );
 
-      const button = $("verifyButton");
 
-      setButtonLoading(button, true, "Verify OTP");
 
-      try {
-        await confirmationResult.confirm(otp);
+    // =====================================
+    // CHANGE EMAIL
+    // =====================================
 
-        $("successHeading").textContent =
-          "Congratulations, " + customerName.split(" ")[0] + "!";
+    $("changeButton").addEventListener(
+      "click",
+      () => {
 
-        showPage("successPage");
-      } catch (error) {
-        console.error(error);
+        $("otp").value = "";
 
-        showPage("failPage");
-      } finally {
-        setButtonLoading(button, false, "Verify OTP");
+        clearMessage("otpMessage");
+
+        showPage("loginPage");
+
       }
-    }
+    );
 
-    async function resendOTP() {
-      if (resendTimeout) return;
-
-      $("otp").value = "";
-
-      showPage("loginPage");
-
-      // Re-send the OTP using the same validated login form.
-      $("loginForm").requestSubmit();
-    }
-
-    $("loginForm").addEventListener("submit", async (event) => {
-      event.preventDefault();
-      await sendOTP();
-    });
-
-    $("otpForm").addEventListener("submit", verifyOTP);
-
-    $("resendButton").addEventListener("click", resendOTP);
-
-    $("changeButton").addEventListener("click", () => {
-      confirmationResult = null;
-      $("otp").value = "";
-      resetRecaptcha();
-      showPage("loginPage");
-    });
-
-    $("retryButton").addEventListener("click", () => {
-      confirmationResult = null;
-      $("otp").value = "";
-      resetRecaptcha();
-      showPage("loginPage");
-    });
   </script>
 
 </body>
